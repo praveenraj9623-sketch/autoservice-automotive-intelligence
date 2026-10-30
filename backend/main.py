@@ -1,0 +1,63 @@
+import logging
+import uvicorn
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+
+from app.core.config import get_settings
+from app.api.routes import chunks, search, health, graph_search, images
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
+
+# Load settings
+settings = get_settings()
+
+# Create FastAPI app
+# Enable automatic trailing slash redirects for better compatibility
+app = FastAPI(title=settings.PROJECT_NAME, redirect_slashes=True)
+
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Exception handler
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error. Please check the logs for details."}
+    )
+
+# Include routers with consistent slash handling
+app.include_router(health.router, prefix=f"{settings.API_V1_STR}/health", tags=["health"])
+app.include_router(chunks.router, prefix=f"{settings.API_V1_STR}/chunks", tags=["chunks"])
+app.include_router(search.router, prefix=f"{settings.API_V1_STR}/search", tags=["search"])
+app.include_router(graph_search.router, prefix=f"{settings.API_V1_STR}/search", tags=["search"])
+app.include_router(images.router, prefix=f"{settings.API_V1_STR}/images", tags=["images"])
+
+# FastAPI will now automatically redirect requests with/without trailing slashes
+# This provides better compatibility with frontend proxy requests
+
+# Root endpoint
+@app.get("/")
+async def root():
+    return {
+        "message": "Car Manual Explorer API is running. See /docs for API documentation.",
+        "industry": "automotive",
+        "version": "1.0.0"
+    }
+
+if __name__ == "__main__":
+    # Run the application with uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=settings.DEBUG)

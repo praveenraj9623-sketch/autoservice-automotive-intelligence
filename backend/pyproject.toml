@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "your-virtual-env"
+version = "0.1.0"
+description = "Car Manual Hybrid Search + RAG"
+authors = ["Mehar Grewal <mehar.grewal@mongodb.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.13"
+pymongo = "^4.10.1"
+python-dotenv = "^1.0.1"
+fastapi = "^0.142.2"
+uvicorn = "^0.32.0"
+google-cloud-aiplatform = "^1.40.0"
+vertexai = "^0.0.1"
+pydantic-settings = "^2.8.1"
+pillow = "^13.0.0"
+voyageai = "^0.3.5"
+
+
+[tool.poetry.group.dev.dependencies]
+pip-licenses = "^5.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
